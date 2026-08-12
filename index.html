@@ -104,6 +104,29 @@
   .stageprogwrap .label{display:flex;justify-content:space-between;font-size:.68rem;color:var(--sub);margin-bottom:3px;}
   .stageprogress{width:100%;height:8px;background:#e4e9f7;border-radius:5px;overflow:hidden;border:1px solid var(--border);}
   .stageprogress .fill{height:100%;background:linear-gradient(90deg,var(--accent2),#ffe28a);transition:width .4s;}
+  .condtext{font-size:.7rem;color:var(--sub);text-align:center;margin-top:2px;}
+  .statusline{
+    width:100%;display:flex;align-items:center;gap:8px;justify-content:center;
+    font-size:.78rem;font-weight:700;padding:8px 10px;border-radius:9px;
+    transition:background .3s,color .3s;
+  }
+  .statusline.good{background:rgba(31,179,115,.12);color:var(--good);}
+  .statusline.warn{background:rgba(255,157,61,.14);color:#c97a1a;}
+  .statusline.danger{background:rgba(224,69,90,.14);color:var(--danger);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
+
+  .groundwrap{width:100%;margin-top:2px;}
+  .groundtitle{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--sub);margin-bottom:6px;font-weight:600;}
+  .lifebadge{font-size:.66rem;padding:2px 9px;border-radius:20px;background:#eef2fc;border:1px solid var(--border);color:var(--sub);}
+  .lifebadge.on{background:rgba(31,179,115,.15);color:var(--good);border-color:transparent;font-weight:700;}
+  .groundscene{position:relative;width:100%;height:112px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+  .groundscene .sky{position:absolute;top:0;left:0;right:0;height:66%;transition:background 1.2s;}
+  .groundscene .ground{position:absolute;bottom:0;left:0;right:0;height:38%;transition:background 1.2s;}
+  .groundscene .icons{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;gap:16px;font-size:1.6rem;filter:drop-shadow(0 2px 3px rgba(0,0,0,.25));}
+  .groundscene .icons span{display:inline-block;animation:bob 2.4s ease-in-out infinite;}
+  .groundscene .icons span:nth-child(2){animation-delay:.6s;}
+  @keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+  .scenelabel{font-size:.72rem;color:var(--sub);text-align:center;margin-top:6px;line-height:1.5;min-height:2.2em;}
 
   .rightcol{display:flex;flex-direction:column;gap:14px;}
   .statspanel{
@@ -195,9 +218,21 @@
       </div>
       <div class="stagename" id="stageName">誕生したばかりの惑星</div>
       <div class="stagedesc" id="stageDesc">灼熱のマグマオーシャンに覆われた原始の星。まずは冷えるのを待とう。</div>
+      <div class="condtext" id="condText"></div>
       <div class="stageprogwrap">
         <div class="label"><span>この時代の進行度</span><span id="stageProgTxt">0%</span></div>
         <div class="stageprogress"><div class="fill" id="stageProgFill" style="width:0%"></div></div>
+      </div>
+      <div class="statusline good" id="statusLine">🟢 順調に進行中</div>
+
+      <div class="groundwrap">
+        <div class="groundtitle"><span>🌎 地上の様子</span><span class="lifebadge" id="lifeBadge">❌ 生命反応: なし</span></div>
+        <div class="groundscene">
+          <div class="sky" id="sceneSky"></div>
+          <div class="ground" id="sceneGround"></div>
+          <div class="icons" id="sceneIcons"></div>
+        </div>
+        <div class="scenelabel" id="sceneLabel"></div>
       </div>
     </div>
 
@@ -253,42 +288,77 @@
 /* ---------- データ定義 ---------- */
 const STAGES = [
   {name:"誕生したばかりの惑星", desc:"灼熱のマグマオーシャンに覆われた原始の星。まずは冷えるのを待とう。",
-    cond:s=>s.temp<=72, floor:0},
+    cond:s=>s.temp<=72, condText:"必要条件: 気温72以下", floor:0},
   {name:"海の誕生", desc:"雨が降り注ぎ、原始の海がゆっくりと広がり始めている。",
-    cond:s=>s.water>=20 && s.temp<=68, floor:0},
+    cond:s=>s.water>=20 && s.temp<=68, condText:"必要条件: 海洋20%以上・気温68以下", floor:0},
   {name:"有機物の誕生", desc:"海の中で複雑な有機分子が生まれ、生命の材料が揃いつつある。",
-    cond:s=>s.water>=30 && s.temp>=15 && s.temp<=62, floor:0},
+    cond:s=>s.water>=30 && s.temp>=15 && s.temp<=62, condText:"必要条件: 海洋30%以上・気温15〜62", floor:0},
   {name:"原始生命の誕生", desc:"嫌気性の微生物が海の中でひっそりと誕生した。",
-    cond:s=>s.water>=30 && s.temp>=15 && s.temp<=62, floor:1},
+    cond:s=>s.water>=30 && s.temp>=15 && s.temp<=62, condText:"必要条件: 海洋30%以上・気温15〜62を維持", floor:1},
   {name:"光合成生物の誕生", desc:"シアノバクテリアが酸素を生み出し始めた。大気の組成が変わっていく。",
-    cond:s=>s.o2>=15, floor:1, onEnter:s=>{s.hasPhotosynthesis=true;}},
+    cond:s=>s.o2>=15, condText:"必要条件: 酸素濃度15%以上(光合成促進が有効)", floor:1, onEnter:s=>{s.hasPhotosynthesis=true;}},
   {name:"多細胞生物の爆発的増加", desc:"酸素濃度の上昇を追い風に、複雑な多細胞生物が爆発的に増えている(カンブリア紀)。",
-    cond:s=>s.o2>=20 && s.water>=35, floor:1},
+    cond:s=>s.o2>=20 && s.water>=35, condText:"必要条件: 酸素20%以上・海洋35%以上", floor:1},
   {name:"海洋生物の繁栄", desc:"魚類をはじめ、多様な生物で海が満たされている。",
-    cond:s=>s.o2>=25 && s.water>=35, floor:1},
+    cond:s=>s.o2>=25 && s.water>=35, condText:"必要条件: 酸素25%以上・海洋35%以上", floor:1},
   {name:"生物の上陸", desc:"両生類が陸地へと進出を始めた。",
-    cond:s=>s.o2>=28 && s.water<=85, floor:1},
+    cond:s=>s.o2>=28 && s.water<=85, condText:"必要条件: 酸素28%以上・海洋85%以下", floor:1},
   {name:"爬虫類・恐竜の時代", desc:"温暖な気候の中、大型爬虫類が地上を支配している。",
-    cond:s=>s.temp>=40 && s.temp<=78, floor:1},
+    cond:s=>s.temp>=40 && s.temp<=78, condText:"必要条件: 気温40〜78を維持", floor:1},
   {name:"哺乳類の台頭", desc:"環境変動を生き延びた哺乳類が、静かに多様化を続けている。",
-    cond:s=>true, floor:1},
+    cond:s=>true, condText:"時間経過で自然に進行", floor:1},
   {name:"霊長類の出現", desc:"知能の高い霊長類が森の中で進化している。",
-    cond:s=>s.temp>=25 && s.temp<=65, floor:1},
+    cond:s=>s.temp>=25 && s.temp<=65, condText:"必要条件: 気温25〜65を維持", floor:1},
   {name:"人類の誕生", desc:"ついに知的生命体、人類が誕生した。",
-    cond:s=>true, floor:1},
+    cond:s=>true, condText:"時間経過で自然に進行", floor:1},
   {name:"文明の黎明(狩猟採集)", desc:"人類が道具と火を使いこなし始めた。",
-    cond:s=>true, floor:1, civ:true, onEnter:s=>{s.hasCivilization=true;}},
+    cond:s=>true, condText:"時間経過で進行(文明支援が有効)", floor:1, civ:true, onEnter:s=>{s.hasCivilization=true;}},
   {name:"農耕文明の発展", desc:"定住と農業により、人口がゆるやかに増加している。",
-    cond:s=>true, floor:1, civ:true},
+    cond:s=>true, condText:"時間経過で進行(文明支援が有効)", floor:1, civ:true},
   {name:"工業文明の到来", desc:"科学技術が急速に発展する一方、環境への負荷も増大している。",
-    cond:s=>true, floor:1, civ:true, onEnter:s=>{s.industrial=true;}},
+    cond:s=>true, condText:"時間経過で進行(文明支援・環境対策が有効)", floor:1, civ:true, onEnter:s=>{s.industrial=true;}},
   {name:"情報文明への進化", desc:"高度な技術文明が、地球規模の課題の解決に挑んでいる。",
-    cond:s=>true, floor:1, civ:true},
+    cond:s=>true, condText:"時間経過で進行(文明支援が有効)", floor:1, civ:true},
   {name:"宇宙進出文明", desc:"ついに人類は地球を離れ、宇宙へと進出した。", ending:true, floor:1, civ:true},
 ];
 
 const TIME_LIMIT = 150; // 億年
 const REF_MARK = 46;
+
+/* 地上の映像(時代ごとの地表シーン) — STAGESと同じ並び */
+const GROUND_SCENES = [
+  {sky:'molten', ground:'lava',  icons:['🌋'],        label:'マグマに覆われた大地。生命の兆候はまだない。'},
+  {sky:'stormy', ground:'lava',  icons:['🌊','⛈️'],   label:'激しい雨が降り注ぎ、原始の海ができ始めている。'},
+  {sky:'stormy', ground:'ocean', icons:['🧪'],         label:'海中に有機物が漂っている。生命の兆候はまだない。'},
+  {sky:'clear',  ground:'ocean', icons:['🦠'],         label:'海中に微生物の反応を検出した。'},
+  {sky:'clear',  ground:'ocean', icons:['🦠','🟢'],   label:'光合成を行う微生物が広がっている。'},
+  {sky:'clear',  ground:'ocean', icons:['🐚','🦐'],   label:'多様な小型生物が爆発的に増えている。'},
+  {sky:'clear',  ground:'ocean', icons:['🐟','🐠'],   label:'魚類をはじめ、海が生物で満たされている。'},
+  {sky:'clear',  ground:'land',  icons:['🐸'],         label:'両生類が陸に上がり始めた。'},
+  {sky:'clear',  ground:'land',  icons:['🦖'],         label:'恐竜が地上を闊歩している。'},
+  {sky:'clear',  ground:'land',  icons:['🦔'],         label:'哺乳類が静かに多様化している。'},
+  {sky:'clear',  ground:'land',  icons:['🐒'],         label:'霊長類が樹上で暮らしている。'},
+  {sky:'clear',  ground:'land',  icons:['🧍'],         label:'人類が誕生し、大地を歩き始めた。'},
+  {sky:'clear',  ground:'land',  icons:['🏕️','🔥'],  label:'人類が火と道具を使いこなし始めた。'},
+  {sky:'clear',  ground:'land',  icons:['🌾','🏘️'],  label:'農地と集落が広がっている。'},
+  {sky:'hazy',   ground:'city',  icons:['🏭','🏙️'],  label:'工場と都市が立ち並んでいる。'},
+  {sky:'night',  ground:'city',  icons:['🌆','💡'],   label:'夜も光り輝く情報化都市が広がっている。'},
+  {sky:'space',  ground:'city',  icons:['🚀','🛰️'],  label:'宇宙へ進出した文明の光が瞬いている。'},
+];
+const SKY_BG = {
+  molten:'linear-gradient(#4a0f05,#ff6a2e)',
+  stormy:'linear-gradient(#37475e,#93aac4)',
+  clear:'linear-gradient(#7ec8f2,#d8f0ff)',
+  hazy:'linear-gradient(#cdb98a,#efe3c4)',
+  night:'linear-gradient(#0b1230,#25326b)',
+  space:'linear-gradient(#04050c,#161f45)',
+};
+const GROUND_BG = {
+  lava:'linear-gradient(#2b0500,#9c2200)',
+  ocean:'linear-gradient(#0a3d6b,#1174b8)',
+  land:'linear-gradient(#3f7d3a,#6ab35f)',
+  city:'linear-gradient(#4a4f5c,#767c8c)',
+};
 
 const ACTIONS = [
   {id:'volcano_up', label:'🌋 火山活動を活発化', cost:2, minStage:0,
@@ -549,8 +619,24 @@ function render(){
   const st = STAGES[s.stage];
   document.getElementById('stageName').textContent = `${s.stage+1}. ${st.name}`;
   document.getElementById('stageDesc').textContent = st.desc;
+  document.getElementById('condText').textContent = st.ending ? '' : (st.condText || '');
   document.getElementById('stageProgTxt').textContent = st.ending ? '—' : Math.round(s.stageProgress)+'%';
   document.getElementById('stageProgFill').style.width = st.ending ? '100%' : s.stageProgress+'%';
+
+  const statusEl = document.getElementById('statusLine');
+  if (st.ending){
+    statusEl.className = 'statusline good';
+    statusEl.textContent = '🟢 ゴール到達!';
+  } else if (s.extremeCounter>=1){
+    statusEl.className = 'statusline danger';
+    statusEl.textContent = `🔴 危険: 環境が極端です。あと${Math.max(0,3-s.extremeCounter)}ターンで大量絶滅の恐れ`;
+  } else if (st.cond(s)){
+    statusEl.className = 'statusline good';
+    statusEl.textContent = '🟢 順調: 条件を満たしています。このまま進化が進みます';
+  } else {
+    statusEl.className = 'statusline warn';
+    statusEl.textContent = '🟡 停滞: 条件が満たされておらず、進化はほとんど進みません';
+  }
 
   ACTIONS.forEach(a=>{
     const btn=document.getElementById('act_'+a.id);
@@ -558,6 +644,24 @@ function render(){
   });
 
   updatePlanetVisual();
+  updateGroundScene();
+}
+
+function updateGroundScene(){
+  const gs = GROUND_SCENES[s.stage];
+  document.getElementById('sceneSky').style.background = SKY_BG[gs.sky];
+  document.getElementById('sceneGround').style.background = GROUND_BG[gs.ground];
+  document.getElementById('sceneIcons').innerHTML = gs.icons.map(ic=>`<span>${ic}</span>`).join('');
+  document.getElementById('sceneLabel').textContent = gs.label;
+
+  const lifeBadge = document.getElementById('lifeBadge');
+  if (s.stage>=3){
+    lifeBadge.textContent = '🧬 生命反応: 検出';
+    lifeBadge.className = 'lifebadge on';
+  } else {
+    lifeBadge.textContent = '❌ 生命反応: なし';
+    lifeBadge.className = 'lifebadge';
+  }
 }
 
 function lerp(a,b,t){return a+(b-a)*t;}
