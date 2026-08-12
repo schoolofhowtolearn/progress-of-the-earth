@@ -230,6 +230,20 @@
   }
   .scenelabel{font-size:.72rem;color:var(--sub);text-align:center;margin-top:6px;line-height:1.5;min-height:2.2em;}
 
+  .traitsbox{width:100%;margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);}
+  .traitrow{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+  .traitrow span{font-size:.68rem;color:var(--sub);width:64px;flex-shrink:0;}
+  .tbar{flex:1;height:7px;background:#e4e9f7;border-radius:5px;overflow:hidden;border:1px solid var(--border);}
+  .tbar i{display:block;height:100%;border-radius:5px;transition:width .4s;}
+  .specieswrap{display:flex;align-items:center;justify-content:space-between;margin-top:8px;gap:8px;flex-wrap:wrap;}
+  .specieswrap span{font-size:.72rem;color:var(--text);font-weight:600;}
+  .specieswrap button{
+    background:var(--panel2);border:1px solid var(--border);color:var(--text);
+    padding:4px 10px;border-radius:7px;font-size:.68rem;cursor:pointer;
+  }
+  .specieswrap button:hover{border-color:var(--accent);}
+  .dominantbadge{font-size:.64rem;padding:2px 8px;border-radius:20px;background:rgba(33,150,216,.12);color:var(--accent);font-weight:700;}
+
   .rightcol{display:flex;flex-direction:column;gap:14px;}
   .statspanel{
     background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:16px 18px;
@@ -309,7 +323,7 @@
 <div class="wrap">
 
   <header>
-    <h1>🌍 <span>46億年物語</span> 〜惑星進化シミュレーター〜</h1>
+    <h1>🌍 <span>Progress of the Earth</span> 〜惑星進化シミュレーター〜</h1>
     <div style="display:flex;gap:8px;">
       <button class="howto-btn" id="howtoBtn">遊び方</button>
       <button class="tree-btn" id="treeBtn">進化ツリー</button>
@@ -353,6 +367,16 @@
           <div class="icons" id="sceneIcons"></div>
         </div>
         <div class="scenelabel" id="sceneLabel"></div>
+
+        <div class="traitsbox" id="traitsBox" style="display:none;">
+          <div class="traitrow"><span>🧠 知力</span><div class="tbar"><i id="trait_intellect" style="width:0%;background:#5ad1ff;"></i></div></div>
+          <div class="traitrow"><span>💪 身体</span><div class="tbar"><i id="trait_body" style="width:0%;background:#ff8a5a;"></i></div></div>
+          <div class="traitrow"><span>🤝 社会性</span><div class="tbar"><i id="trait_social" style="width:0%;background:#6bffa0;"></i></div></div>
+          <div class="specieswrap">
+            <span id="speciesLabel">種の名前: <span id="speciesNameTxt">未設定</span> <span class="dominantbadge" id="dominantBadge" style="display:none;"></span></span>
+            <button id="nameSpeciesBtn">✏️ 名付ける</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -380,6 +404,7 @@
       各時代には「次の時代へ進む条件」があり、条件が満たされていると進行度ゲージが進みます。条件が合わない状態が続くと進化はほとんど進みません。<br><br>
       画面下の「干渉アクション」を使うと、環境を直接動かしたり進化を後押しできます。アクションには⚡干渉ポイントが必要で、毎ターン少しずつ回復します。<br><br>
       隕石衝突や火山の大噴火、氷河期などのイベントがランダムに発生します。環境が極端に傾くと大量絶滅が起きて時代が後退することもあるので注意してください。<br><br>
+      生命が誕生すると、あなたの種に名前をつけられます。🧠知力・💪身体・🤝社会性の3方向に育成でき、どれを伸ばすかでその後の進化の見た目や文明の性格が変わり、それぞれ違う強み(知力=文明の発展が速い、身体=絶滅への耐性、社会性=多様性の回復力)を持ちます。<br><br>
       実際の地球は誕生から今日まで<b style="color:var(--accent2)">約46億年</b>かかりました。それより速く宇宙進出を果たせるか、挑戦してみましょう(制限時間150億年)。
     </p>
     <button class="close" onclick="closeModal('howtoModalBg')">閉じる</button>
@@ -535,26 +560,66 @@ function updateTimeMarker(){
   if (limitTxt) limitTxt.textContent = TIME_LIMIT;
 }
 
-/* 地上の映像(時代ごとの地表シーン) — STAGESと同じ並び */
+/* 地上の映像(時代ごとの地表シーン) — STAGESと同じ並び。variantsは知力/身体/社会性のどれが優勢かで見た目と説明が変わる分岐 */
 const GROUND_SCENES = [
   {sky:'molten', ground:'lava',  icons:['🌋'],        label:'マグマに覆われた大地。生命の兆候はまだない。'},
   {sky:'stormy', ground:'lava',  icons:['🌊','⛈️'],   label:'激しい雨が降り注ぎ、原始の海ができ始めている。'},
   {sky:'stormy', ground:'ocean', icons:['🧪'],         label:'海中に有機物が漂っている。生命の兆候はまだない。'},
   {sky:'clear',  ground:'ocean', icons:['🦠'],         label:'海中に微生物の反応を検出した。'},
   {sky:'clear',  ground:'ocean', icons:['🦠','🟢'],   label:'光合成を行う微生物が広がっている。'},
-  {sky:'clear',  ground:'ocean', icons:['🐚','🦐'],   label:'多様な小型生物が爆発的に増えている。'},
-  {sky:'clear',  ground:'ocean', icons:['🐟','🐠'],   label:'魚類をはじめ、海が生物で満たされている。'},
-  {sky:'clear',  ground:'land',  icons:['🐸'],         label:'両生類が陸に上がり始めた。'},
-  {sky:'clear',  ground:'land',  icons:['🦖'],         label:'恐竜が地上を闊歩している。'},
-  {sky:'clear',  ground:'land',  icons:['🦔'],         label:'哺乳類が静かに多様化している。'},
-  {sky:'clear',  ground:'land',  icons:['🐒'],         label:'霊長類が樹上で暮らしている。'},
-  {sky:'clear',  ground:'land',  icons:['🧍'],         label:'人類が誕生し、大地を歩き始めた。'},
+  {sky:'clear',  ground:'ocean', icons:['🐚','🦐'],   label:'多様な小型生物が爆発的に増えている。',
+    variants:{
+      intellect:{icons:['🦑'], label:'複雑な神経系を持つ賢い生物が現れた。'},
+      body:{icons:['🦞'], label:'硬い殻と強靭な体を持つ生物が現れた。'},
+      social:{icons:['🐚','🐚'], label:'群れで暮らす生物が増えている。'},
+    }},
+  {sky:'clear',  ground:'ocean', icons:['🐟','🐠'],   label:'魚類をはじめ、海が生物で満たされている。',
+    variants:{
+      intellect:{icons:['🐙'], label:'賢いタコ型の生物が繁栄している。'},
+      body:{icons:['🦈'], label:'力強い捕食者が繁栄している。'},
+      social:{icons:['🐟','🐟'], label:'大きな群れをつくる魚が繁栄している。'},
+    }},
+  {sky:'clear',  ground:'land',  icons:['🐸'],         label:'両生類が陸に上がり始めた。',
+    variants:{
+      intellect:{icons:['🦎'], label:'器用で賢い両生類が陸に上がり始めた。'},
+      body:{icons:['🐊'], label:'頑丈な体を持つ両生類が陸に上がり始めた。'},
+      social:{icons:['🐸','🐸'], label:'集団で陸に上がる両生類が現れた。'},
+    }},
+  {sky:'clear',  ground:'land',  icons:['🦖'],         label:'恐竜が地上を闊歩している。',
+    variants:{
+      intellect:{icons:['🦖'], label:'知能に優れた俊敏な恐竜が繁栄している。'},
+      body:{icons:['🦕'], label:'巨大で力強い恐竜が繁栄している。'},
+      social:{icons:['🦖','🦖'], label:'群れで狩りをする恐竜が繁栄している。'},
+    }},
+  {sky:'clear',  ground:'land',  icons:['🦔'],         label:'哺乳類が静かに多様化している。',
+    variants:{
+      intellect:{icons:['🐬'], label:'知能の高い哺乳類が台頭している。'},
+      body:{icons:['🦣'], label:'力強い大型哺乳類が台頭している。'},
+      social:{icons:['🐺'], label:'群れで生きる哺乳類が台頭している。'},
+    }},
+  {sky:'clear',  ground:'land',  icons:['🐒'],         label:'霊長類が樹上で暮らしている。',
+    variants:{
+      intellect:{icons:['🐒'], label:'道具を使い始めた賢い霊長類が現れた。'},
+      body:{icons:['🦍'], label:'力強い大型の霊長類が現れた。'},
+      social:{icons:['🐒','🐒'], label:'群れで暮らす社会的な霊長類が現れた。'},
+    }},
+  {sky:'clear',  ground:'land',  icons:['🧍'],         label:'人類が誕生し、大地を歩き始めた。',
+    variants:{
+      intellect:{icons:['🧑‍🔬'], label:'知性に優れた人類が誕生した。'},
+      body:{icons:['🧍'], label:'屈強な人類が誕生した。'},
+      social:{icons:['🧍','🧍'], label:'助け合う社会性の高い人類が誕生した。'},
+    }},
   {sky:'clear',  ground:'land',  icons:['🏕️','🔥'],  label:'人類が火と道具を使いこなし始めた。'},
   {sky:'clear',  ground:'land',  icons:['🌾','🏘️'],  label:'農地と集落が広がっている。'},
   {sky:'hazy',   ground:'city',  icons:['🏭','🏙️'],  label:'工場と都市が立ち並んでいる。'},
   {sky:'night',  ground:'city',  icons:['🌆','💡'],   label:'夜も光り輝く情報化都市が広がっている。'},
   {sky:'space',  ground:'city',  icons:['🚀','🛰️'],  label:'宇宙へ進出した文明の光が瞬いている。'},
 ];
+const CIV_TRAIT_FLAVOR = {
+  intellect:'知的探求を重視する文明へ育っている。',
+  body:'力強さとたくましさを重視する文明へ育っている。',
+  social:'協調と共同体を重視する文明へ育っている。',
+};
 const SKY_BG = {
   molten:'linear-gradient(#4a0f05,#ff6a2e)',
   stormy:'linear-gradient(#37475e,#93aac4)',
@@ -600,7 +665,14 @@ const ACTIONS = [
     run:s=>{s.stageProgress=clamp(s.stageProgress+26,0,100); addLog('文明の発展を後押しした。');}},
   {id:'eco_measure', label:'♻️ 環境対策を進める', cost:2, minStage:14,
     run:s=>{s.co2=clamp(s.co2-14,0,100); addLog('環境対策により、CO2濃度が改善した。');}},
+  {id:'grow_intellect', label:'🧠 知力の発達を促す', cost:2, minStage:3,
+    run:s=>{s.traits.intellect=clamp(s.traits.intellect+12,0,100); addLog(`${speciesRef(s)}の知力の発達を促した。`);}},
+  {id:'grow_body', label:'💪 身体能力の強化を促す', cost:2, minStage:3,
+    run:s=>{s.traits.body=clamp(s.traits.body+12,0,100); addLog(`${speciesRef(s)}の身体能力の強化を促した。`);}},
+  {id:'grow_social', label:'🤝 群れる習性を促す', cost:2, minStage:3,
+    run:s=>{s.traits.social=clamp(s.traits.social+12,0,100); addLog(`${speciesRef(s)}の群れる習性を促した。`);}},
 ];
+function speciesRef(s){ return s.speciesName ? `『${s.speciesName}』` : 'あなたの種'; }
 
 /* ---------- 状態 ---------- */
 let s;
@@ -610,8 +682,21 @@ function initState(){
     stage:0, stageProgress:0, pw:5, maxPw:10, extinctions:0,
     hasPhotosynthesis:false, hasCivilization:false, industrial:false, civCollapsed:false,
     extremeCounter:0, gameEnded:false,
+    speciesName:null,
+    traits:{intellect:0, body:0, social:0},
   };
 }
+/* 優勢な進化方向(知力/身体/社会性)を判定。差が小さいうちは「まだ未分化」として null を返す */
+function dominantTrait(state){
+  const t = state.traits;
+  const entries = [['intellect',t.intellect],['body',t.body],['social',t.social]];
+  entries.sort((a,b)=>b[1]-a[1]);
+  const [topKey, topVal] = entries[0];
+  const secondVal = entries[1][1];
+  if (topVal < 12 || (topVal - secondVal) < 8) return null;
+  return topKey;
+}
+const TRAIT_LABEL = {intellect:'知力型', body:'身体型', social:'社会型'};
 initState();
 let speed=1, paused=true, timer=null;
 const logEl=document.getElementById('log');
@@ -666,19 +751,24 @@ function showEventFX({emoji, text, tone='neutral', shake=false, meteor=false}){
 function triggerExtinction(state, msg){
   addLog(msg, 'ev-bad');
   state.extinctions++;
+  // 身体能力の高い種は打撃をやや軽く受け止める、社会性の高い種は多様性の落ち込みが小さい
+  const resilient = state.traits.body>=50;
+  const cohesive = state.traits.social>=50;
   const wasCiv = state.stage>=12;
   if (wasCiv){
-    state.stage = Math.max(9, state.stage-5);
+    const drop = resilient ? 4 : 5;
+    state.stage = Math.max(9, state.stage-drop);
     addLog('💥 文明は崩壊し、世界は再び自然の時代へと戻ってしまった。', 'ev-bad');
     state.civCollapsed = true;
     showEventFX({emoji:'💥', text:'文明崩壊が発生した!', tone:'bad', shake:true});
   } else {
     const floor = STAGES[state.stage].floor ?? 0;
-    state.stage = Math.max(floor, state.stage-2);
+    const drop = resilient ? 1 : 2;
+    state.stage = Math.max(floor, state.stage-drop);
     showEventFX({emoji:'💀', text:'大量絶滅が発生した!', tone:'bad', shake:true});
   }
   state.stageProgress = 0;
-  state.biodiversity = clamp(state.biodiversity-25,0,100);
+  state.biodiversity = clamp(state.biodiversity-(cohesive?15:25),0,100);
 }
 
 /* ---------- ランダムイベント ---------- */
@@ -746,18 +836,20 @@ function tick(){
     s.o2 = clamp(s.o2 + 0.45, 0, 100);
     s.co2 = clamp(s.co2 - 0.2, 0, 100);
   }
-  // 工業文明の自動的な環境負荷
+  // 工業文明の自動的な環境負荷(知力の高い文明はクリーンな技術で負荷をやや抑えられる)
   if (s.industrial){
-    s.co2 = clamp(s.co2 + 0.35, 0, 100);
+    const cleanFactor = 1 - clamp(s.traits.intellect,0,100)/250; // 最大で約4割軽減
+    s.co2 = clamp(s.co2 + 0.35*cleanFactor, 0, 100);
   }
 
   // ランダムイベント
   maybeEvent(s);
 
-  // 極端環境による絶滅チェック(生命誕生後のみ)
+  // 極端環境による絶滅チェック(生命誕生後のみ)。身体能力の高い種はやや長く耐えられる
+  const extremeTolerance = s.traits.body>=50 ? 4 : 3;
   if (s.stage>=3 && (s.temp>=93 || s.temp<=7)){
     s.extremeCounter++;
-    if (s.extremeCounter>=3){
+    if (s.extremeCounter>=extremeTolerance){
       triggerExtinction(s, s.temp>=93 ? '🔥 灼熱化が進み、生態系が崩壊した。' : '🧊 極寒により、生態系が崩壊した。');
       s.extremeCounter=0;
     }
@@ -765,11 +857,12 @@ function tick(){
     s.extremeCounter=0;
   }
 
-  // 時代進行
+  // 時代進行(文明段階は知力が高いほどやや早く進む)
   const st = STAGES[s.stage];
   if (!st.ending){
-    if (stageCondMet(st,s)) s.stageProgress = clamp(s.stageProgress + 11 + Math.random()*6, 0, 100);
-    else s.stageProgress = clamp(s.stageProgress + 2, 0, 100);
+    const civBonus = st.civ ? s.traits.intellect*0.05 : 0;
+    if (stageCondMet(st,s)) s.stageProgress = clamp(s.stageProgress + 11 + Math.random()*6 + civBonus, 0, 100);
+    else s.stageProgress = clamp(s.stageProgress + 2 + civBonus, 0, 100);
 
     if (s.stageProgress>=100){
       s.stage++;
@@ -818,7 +911,10 @@ function endGame(won){
     else if (s.tick<=100) rank='A';
     else if (s.tick<=130) rank='B';
     rankEl.textContent=rank;
-    bodyEl.textContent=`${s.tick}億年で惑星は宇宙進出文明へと至りました(地球の実際の歴史は約46億年)。大量絶滅は${s.extinctions}回発生しました。`;
+    const dom = dominantTrait(s);
+    const nameTxt = s.speciesName ? `あなたの種『${s.speciesName}』は` : 'あなたの種は';
+    const domTxt = dom ? `(${TRAIT_LABEL[dom]}の道を歩んだ文明でした)` : '';
+    bodyEl.textContent=`${nameTxt}${s.tick}億年で宇宙進出文明へと至りました${domTxt}(地球の実際の歴史は約46億年)。大量絶滅は${s.extinctions}回発生しました。`;
   } else {
     titleEl.textContent='タイムアップ';
     emojiEl.textContent='⏳';
@@ -906,12 +1002,26 @@ function render(){
 
 function updateGroundScene(){
   const gs = GROUND_SCENES[s.stage];
+  const dom = s.stage>=3 ? dominantTrait(s) : null;
+  const variant = (dom && gs.variants) ? gs.variants[dom] : null;
+  const icons = variant ? variant.icons : gs.icons;
+  let label = variant ? variant.label : gs.label;
+
+  // 文明段階(狩猟採集〜情報化)は基本アイコンのまま、傾向に応じて説明文だけ変える
+  const st = STAGES[s.stage];
+  if (!variant && dom && st.civ && !st.ending && CIV_TRAIT_FLAVOR[dom]){
+    label = `${label} ${CIV_TRAIT_FLAVOR[dom]}`;
+  }
+  if (s.stage>=3 && s.speciesName){
+    label = `『${s.speciesName}』: ${label}`;
+  }
+
   document.getElementById('sceneSky').style.background = SKY_BG[gs.sky];
   document.getElementById('sceneGround').style.background = GROUND_BG[gs.ground];
-  document.getElementById('sceneIcons').innerHTML = gs.icons.map(ic=>
+  document.getElementById('sceneIcons').innerHTML = icons.map(ic=>
     `<span class="creature"><span class="emoji">${ic}</span><span class="shadow"></span></span>`
   ).join('');
-  document.getElementById('sceneLabel').textContent = gs.label;
+  document.getElementById('sceneLabel').textContent = label;
 
   const lifeBadge = document.getElementById('lifeBadge');
   if (s.stage>=3){
@@ -920,6 +1030,25 @@ function updateGroundScene(){
   } else {
     lifeBadge.textContent = '❌ 生命反応: なし';
     lifeBadge.className = 'lifebadge';
+  }
+
+  // 育成パネル(知力/身体/社会性・種の名前)は生命誕生後のみ表示
+  const traitsBox = document.getElementById('traitsBox');
+  if (s.stage>=3){
+    traitsBox.style.display = '';
+    document.getElementById('trait_intellect').style.width = s.traits.intellect+'%';
+    document.getElementById('trait_body').style.width = s.traits.body+'%';
+    document.getElementById('trait_social').style.width = s.traits.social+'%';
+    document.getElementById('speciesNameTxt').textContent = s.speciesName || '未設定';
+    const badge = document.getElementById('dominantBadge');
+    if (dom){
+      badge.style.display = '';
+      badge.textContent = TRAIT_LABEL[dom];
+    } else {
+      badge.style.display = 'none';
+    }
+  } else {
+    traitsBox.style.display = 'none';
   }
 }
 
@@ -981,6 +1110,17 @@ document.getElementById('howtoBtn').addEventListener('click', ()=>{
   document.getElementById('howtoModalBg').classList.add('show');
 });
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
+
+document.getElementById('nameSpeciesBtn').addEventListener('click', ()=>{
+  const name = prompt('あなたの種に名前をつけてください', s.speciesName || '');
+  if (name===null) return;
+  const trimmed = name.trim();
+  if (trimmed){
+    s.speciesName = trimmed.slice(0,12);
+    addLog(`種に『${s.speciesName}』と名付けた。`, 'ev-good');
+    render();
+  }
+});
 
 /* ---------- 管理者パネル ---------- */
 const FIELD_DEFS = [
