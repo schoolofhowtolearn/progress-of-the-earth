@@ -86,11 +86,12 @@
     padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;
     position:relative;
   }
+  .scenerow{display:flex;gap:10px;width:100%;align-items:flex-start;}
   .planetstage-frame{
-    position:relative;width:264px;height:264px;border-radius:24px;overflow:hidden;
+    position:relative;width:118px;height:118px;flex-shrink:0;border-radius:16px;overflow:hidden;
     display:flex;align-items:center;justify-content:center;
     background:radial-gradient(circle at 50% 45%, #10173a 0%, #060a22 65%, #03040f 100%);
-    box-shadow:inset 0 0 50px rgba(0,0,0,.6);
+    box-shadow:inset 0 0 30px rgba(0,0,0,.6);
   }
   .planetstage-frame.fx-flash-bad::after,
   .planetstage-frame.fx-flash-good::after,
@@ -111,9 +112,9 @@
     80%{transform:translate(4px,-2px);}
   }
   .fxmeteor{
-    position:absolute;z-index:4;font-size:1.8rem;top:-8%;right:-8%;
+    position:absolute;z-index:4;font-size:1rem;top:-8%;right:-8%;
     animation:meteorFly .7s ease-in forwards;
-    filter:drop-shadow(0 0 6px rgba(255,150,60,.9));
+    filter:drop-shadow(0 0 4px rgba(255,150,60,.9));
   }
   @keyframes meteorFly{
     0%{top:-8%;right:-8%;opacity:0;transform:rotate(50deg) scale(.6);}
@@ -153,17 +154,17 @@
     pointer-events:none;
   }
   #planet{
-    width:220px;height:220px;border-radius:50%;position:relative;overflow:hidden;z-index:1;
-    box-shadow:0 0 40px 4px rgba(90,209,255,.25), inset -18px -18px 40px rgba(0,0,0,.55);
+    width:96px;height:96px;border-radius:50%;position:relative;overflow:hidden;z-index:1;
+    box-shadow:0 0 18px 2px rgba(90,209,255,.25), inset -9px -9px 20px rgba(0,0,0,.55);
     transition:background 1s ease;
   }
   #clouds{
     position:absolute;inset:0;border-radius:50%;
     background:
-      radial-gradient(ellipse 60px 24px at 30% 25%, rgba(255,255,255,.55), transparent 70%),
-      radial-gradient(ellipse 50px 20px at 70% 55%, rgba(255,255,255,.45), transparent 70%),
-      radial-gradient(ellipse 70px 22px at 45% 80%, rgba(255,255,255,.4), transparent 70%),
-      radial-gradient(ellipse 40px 18px at 85% 30%, rgba(255,255,255,.4), transparent 70%);
+      radial-gradient(ellipse 26px 10px at 30% 25%, rgba(255,255,255,.55), transparent 70%),
+      radial-gradient(ellipse 22px 9px at 70% 55%, rgba(255,255,255,.45), transparent 70%),
+      radial-gradient(ellipse 30px 10px at 45% 80%, rgba(255,255,255,.4), transparent 70%),
+      radial-gradient(ellipse 18px 8px at 85% 30%, rgba(255,255,255,.4), transparent 70%);
     animation:spin 70s linear infinite;
     opacity:.3;
     pointer-events:none;
@@ -188,22 +189,23 @@
   .statusline.danger{background:rgba(224,69,90,.14);color:var(--danger);animation:pulse 1s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.55;}}
 
-  .groundwrap{width:100%;margin-top:2px;}
-  .groundtitle{display:flex;justify-content:space-between;align-items:center;font-size:.72rem;color:var(--sub);margin-bottom:6px;font-weight:600;}
-  .lifebadge{font-size:.66rem;padding:2px 9px;border-radius:20px;background:#eef2fc;border:1px solid var(--border);color:var(--sub);}
+  .groundcol{flex:1;min-width:0;display:flex;flex-direction:column;}
+  .groundtitle{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;font-size:.66rem;color:var(--sub);margin-bottom:6px;font-weight:600;gap:4px 6px;}
+  .groundtitle span:first-child{white-space:nowrap;}
+  .lifebadge{font-size:.6rem;padding:2px 7px;border-radius:20px;background:#eef2fc;border:1px solid var(--border);color:var(--sub);white-space:nowrap;}
   .lifebadge.on{background:rgba(31,179,115,.15);color:var(--good);border-color:transparent;font-weight:700;}
-  .groundscene{position:relative;width:100%;height:112px;border-radius:10px;overflow:hidden;border:1px solid var(--border);}
+  .groundscene{position:relative;width:100%;height:118px;border-radius:12px;overflow:hidden;border:1px solid var(--border);}
   .groundscene .sky{position:absolute;top:0;left:0;right:0;height:66%;transition:background 1.2s;}
   .groundscene .ground{position:absolute;bottom:0;left:0;right:0;height:38%;transition:background 1.2s;}
-  .groundscene .icons{position:absolute;bottom:6px;left:0;right:0;display:flex;justify-content:center;align-items:flex-end;gap:18px;}
+  .groundscene .icons{position:absolute;bottom:5px;left:0;right:0;display:flex;justify-content:center;align-items:flex-end;gap:10px;}
   .groundscene .icons .creature{display:flex;flex-direction:column;align-items:center;}
   .groundscene .icons .emoji{
-    display:inline-block;font-size:1.7rem;transform-origin:center bottom;
+    display:inline-block;font-size:1.3rem;transform-origin:center bottom;
     filter:drop-shadow(0 2px 3px rgba(0,0,0,.3));
     animation:comicBounce 1.5s cubic-bezier(.34,1.56,.64,1) infinite;
   }
   .groundscene .icons .shadow{
-    width:18px;height:5px;border-radius:50%;background:rgba(0,0,0,.3);
+    width:14px;height:4px;border-radius:50%;background:rgba(0,0,0,.3);
     margin-top:1px;filter:blur(.5px);
     animation:shadowPulse 1.5s ease-in-out infinite;
   }
@@ -211,7 +213,7 @@
   .groundscene .icons .creature:nth-child(1) .shadow{animation-delay:0s;}
   .groundscene .icons .creature:nth-child(2) .emoji,
   .groundscene .icons .creature:nth-child(2) .shadow{animation-delay:.4s;}
-  .groundscene .icons .creature:nth-child(2) .emoji{font-size:1.5rem;}
+  .groundscene .icons .creature:nth-child(2) .emoji{font-size:1.15rem;}
   @keyframes comicBounce{
     0%{transform:translateY(0) scale(1,1) rotate(0deg);}
     15%{transform:translateY(-9px) scale(.95,1.08) rotate(-8deg);}
@@ -347,9 +349,22 @@
   <main>
     <div class="planetpanel">
       <div class="fxtoastwrap" id="fxToastWrap"></div>
-      <div class="planetstage-frame" id="planetFrame">
-        <div id="planet"><div id="clouds"></div><div id="lights"></div></div>
+
+      <div class="scenerow">
+        <div class="planetstage-frame" id="planetFrame">
+          <div id="planet"><div id="clouds"></div><div id="lights"></div></div>
+        </div>
+        <div class="groundcol">
+          <div class="groundtitle"><span>🌎 地上の様子</span><span class="lifebadge" id="lifeBadge">❌ 生命反応: なし</span></div>
+          <div class="groundscene">
+            <div class="sky" id="sceneSky"></div>
+            <div class="ground" id="sceneGround"></div>
+            <div class="icons" id="sceneIcons"></div>
+          </div>
+        </div>
       </div>
+      <div class="scenelabel" id="sceneLabel"></div>
+
       <div class="stagename" id="stageName">誕生したばかりの惑星</div>
       <div class="stagedesc" id="stageDesc">灼熱のマグマオーシャンに覆われた原始の星。まずは冷えるのを待とう。</div>
       <div class="condtext" id="condText"></div>
@@ -359,23 +374,13 @@
       </div>
       <div class="statusline good" id="statusLine">🟢 順調に進行中</div>
 
-      <div class="groundwrap">
-        <div class="groundtitle"><span>🌎 地上の様子</span><span class="lifebadge" id="lifeBadge">❌ 生命反応: なし</span></div>
-        <div class="groundscene">
-          <div class="sky" id="sceneSky"></div>
-          <div class="ground" id="sceneGround"></div>
-          <div class="icons" id="sceneIcons"></div>
-        </div>
-        <div class="scenelabel" id="sceneLabel"></div>
-
-        <div class="traitsbox" id="traitsBox" style="display:none;">
-          <div class="traitrow"><span>🧠 知力</span><div class="tbar"><i id="trait_intellect" style="width:0%;background:#5ad1ff;"></i></div></div>
-          <div class="traitrow"><span>💪 身体</span><div class="tbar"><i id="trait_body" style="width:0%;background:#ff8a5a;"></i></div></div>
-          <div class="traitrow"><span>🤝 社会性</span><div class="tbar"><i id="trait_social" style="width:0%;background:#6bffa0;"></i></div></div>
-          <div class="specieswrap">
-            <span id="speciesLabel">種の名前: <span id="speciesNameTxt">未設定</span> <span class="dominantbadge" id="dominantBadge" style="display:none;"></span></span>
-            <button id="nameSpeciesBtn">✏️ 名付ける</button>
-          </div>
+      <div class="traitsbox" id="traitsBox" style="display:none;">
+        <div class="traitrow"><span>🧠 知力</span><div class="tbar"><i id="trait_intellect" style="width:0%;background:#5ad1ff;"></i></div></div>
+        <div class="traitrow"><span>💪 身体</span><div class="tbar"><i id="trait_body" style="width:0%;background:#ff8a5a;"></i></div></div>
+        <div class="traitrow"><span>🤝 社会性</span><div class="tbar"><i id="trait_social" style="width:0%;background:#6bffa0;"></i></div></div>
+        <div class="specieswrap">
+          <span id="speciesLabel">種の名前: <span id="speciesNameTxt">未設定</span> <span class="dominantbadge" id="dominantBadge" style="display:none;"></span></span>
+          <button id="nameSpeciesBtn">✏️ 名付ける</button>
         </div>
       </div>
     </div>
@@ -1078,8 +1083,8 @@ function updatePlanetVisual(){
     lightsPlaced=true;
     let html='';
     for(let i=0;i<14;i++){
-      const ang=Math.random()*Math.PI*2, rad=Math.random()*80+20;
-      const x=110+Math.cos(ang)*rad, y=110+Math.sin(ang)*rad*0.5;
+      const ang=Math.random()*Math.PI*2, rad=Math.random()*35+9;
+      const x=48+Math.cos(ang)*rad, y=48+Math.sin(ang)*rad*0.5;
       html+=`<span style="left:${x}px;top:${y}px;"></span>`;
     }
     lightsEl.innerHTML=html;
