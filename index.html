@@ -71,6 +71,11 @@
     padding:5px 10px;border-radius:7px;cursor:pointer;font-size:.78rem;
   }
   .speedctl button.active{background:var(--accent);color:#05070f;border-color:var(--accent);font-weight:700;}
+  .speedctl button.needstart{
+    background:var(--good);color:#fff;border-color:var(--good);font-weight:700;
+    animation:needstartPulse 1.3s ease-in-out infinite;
+  }
+  @keyframes needstartPulse{0%,100%{box-shadow:0 0 0 0 rgba(31,179,115,.55);}50%{box-shadow:0 0 0 7px rgba(31,179,115,0);}}
   .pw{font-size:.8rem;color:var(--accent2);white-space:nowrap;}
 
   main{display:grid;grid-template-columns:340px 1fr;gap:16px;}
@@ -243,7 +248,7 @@
     <div class="elapsed">経過 <b id="elapsedTxt">0</b> 億年 / <span id="limitTxt">150</span>億年</div>
     <div class="progressline"><div class="fill" id="timeFill" style="width:0%"></div><div class="marker" id="timeMarker" style="left:calc(46/150*100%)"></div></div>
     <div class="speedctl">
-      <button id="pauseBtn" class="active">⏸ 一時停止</button>
+      <button id="pauseBtn" class="needstart">▶ 再生してスタート</button>
       <button data-speed="1" class="spd active">×1</button>
       <button data-speed="2" class="spd">×2</button>
       <button data-speed="4" class="spd">×4</button>
@@ -946,6 +951,7 @@ function startTimer(){
 document.getElementById('pauseBtn').addEventListener('click', function(){
   if (s.gameEnded) return;
   paused = !paused;
+  this.classList.remove('needstart');
   this.textContent = paused ? '▶ 再生' : '⏸ 一時停止';
   if (paused) clearInterval(timer);
   else startTimer();
