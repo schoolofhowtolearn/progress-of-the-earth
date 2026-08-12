@@ -84,6 +84,7 @@
   .planetpanel{
     background:var(--panel);border:1px solid var(--border);border-radius:14px;
     padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;
+    position:relative;
   }
   .planetstage-frame{
     position:relative;width:264px;height:264px;border-radius:24px;overflow:hidden;
@@ -91,6 +92,50 @@
     background:radial-gradient(circle at 50% 45%, #10173a 0%, #060a22 65%, #03040f 100%);
     box-shadow:inset 0 0 50px rgba(0,0,0,.6);
   }
+  .planetstage-frame.fx-flash-bad::after,
+  .planetstage-frame.fx-flash-good::after,
+  .planetstage-frame.fx-flash-neutral::after{
+    content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+    animation:flashPulse .8s ease;
+  }
+  .planetstage-frame.fx-flash-bad::after{background:radial-gradient(circle, rgba(255,70,70,.6), transparent 70%);}
+  .planetstage-frame.fx-flash-good::after{background:radial-gradient(circle, rgba(90,255,170,.5), transparent 70%);}
+  .planetstage-frame.fx-flash-neutral::after{background:radial-gradient(circle, rgba(255,200,90,.5), transparent 70%);}
+  @keyframes flashPulse{0%{opacity:0;}30%{opacity:1;}100%{opacity:0;}}
+  .planetstage-frame.fx-shake{animation:shakeFrame .5s;}
+  @keyframes shakeFrame{
+    0%,100%{transform:translate(0,0);}
+    20%{transform:translate(-6px,3px);}
+    40%{transform:translate(6px,-3px);}
+    60%{transform:translate(-4px,2px);}
+    80%{transform:translate(4px,-2px);}
+  }
+  .fxmeteor{
+    position:absolute;z-index:4;font-size:1.8rem;top:-8%;right:-8%;
+    animation:meteorFly .7s ease-in forwards;
+    filter:drop-shadow(0 0 6px rgba(255,150,60,.9));
+  }
+  @keyframes meteorFly{
+    0%{top:-8%;right:-8%;opacity:0;transform:rotate(50deg) scale(.6);}
+    15%{opacity:1;}
+    100%{top:68%;right:62%;opacity:1;transform:rotate(50deg) scale(1.15);}
+  }
+  .fxtoastwrap{
+    position:absolute;top:6px;left:50%;transform:translateX(-50%);
+    z-index:6;display:flex;flex-direction:column;gap:6px;align-items:center;
+    pointer-events:none;width:94%;
+  }
+  .fxtoast{
+    background:rgba(20,26,50,.94);color:#fff;padding:7px 14px;border-radius:20px;
+    font-size:.74rem;font-weight:700;display:flex;align-items:center;gap:7px;
+    box-shadow:0 4px 14px rgba(0,0,0,.3);white-space:nowrap;
+    animation:toastIn .35s ease, toastOut .4s ease 1.9s forwards;
+  }
+  .fxtoast .emoji{font-size:1.15rem;}
+  .fxtoast.bad{background:rgba(160,32,44,.95);}
+  .fxtoast.good{background:rgba(20,120,84,.95);}
+  @keyframes toastIn{from{opacity:0;transform:translateY(-10px) scale(.9);}to{opacity:1;transform:translateY(0) scale(1);}}
+  @keyframes toastOut{to{opacity:0;transform:translateY(-8px) scale(.95);}}
   .planetstage-frame::before{
     content:'';position:absolute;inset:0;
     background-image:
@@ -258,7 +303,8 @@
 
   <main>
     <div class="planetpanel">
-      <div class="planetstage-frame">
+      <div class="fxtoastwrap" id="fxToastWrap"></div>
+      <div class="planetstage-frame" id="planetFrame">
         <div id="planet"><div id="clouds"></div><div id="lights"></div></div>
       </div>
       <div class="stagename" id="stageName">誕生したばかりの惑星</div>
@@ -553,17 +599,54 @@ function renderLog(){
   logEl.innerHTML = logBuf.map(e=>`<div class="${e.cls||''}">[${e.tick}億年] ${e.msg}</div>`).join('');
 }
 
+/* ---------- イベントの視覚演出 ---------- */
+function showEventFX({emoji, text, tone='neutral', shake=false, meteor=false}){
+  const wrap = document.getElementById('fxToastWrap');
+  if (wrap){
+    const toast = document.createElement('div');
+    toast.className = 'fxtoast ' + (tone==='bad'?'bad':tone==='good'?'good':'');
+    toast.innerHTML = `<span class="emoji">${emoji}</span><span>${text}</span>`;
+    wrap.appendChild(toast);
+    setTimeout(()=>{ toast.remove(); }, 2300);
+  }
+  const frame = document.getElementById('planetFrame');
+  if (frame){
+    const flashClass = tone==='bad' ? 'fx-flash-bad' : tone==='good' ? 'fx-flash-good' : 'fx-flash-neutral';
+    frame.classList.remove('fx-flash-bad','fx-flash-good','fx-flash-neutral');
+    void frame.offsetWidth; // reflow so the animation restarts even if re-triggered quickly
+    frame.classList.add(flashClass);
+    setTimeout(()=>frame.classList.remove(flashClass), 850);
+
+    if (shake){
+      frame.classList.remove('fx-shake');
+      void frame.offsetWidth;
+      frame.classList.add('fx-shake');
+      setTimeout(()=>frame.classList.remove('fx-shake'), 550);
+    }
+    if (meteor){
+      const m = document.createElement('div');
+      m.className = 'fxmeteor';
+      m.textContent = '☄️';
+      frame.appendChild(m);
+      setTimeout(()=>m.remove(), 750);
+    }
+  }
+}
+
 /* ---------- 絶滅・崩壊処理 ---------- */
 function triggerExtinction(state, msg){
   addLog(msg, 'ev-bad');
   state.extinctions++;
-  if (state.stage>=12){
+  const wasCiv = state.stage>=12;
+  if (wasCiv){
     state.stage = Math.max(9, state.stage-5);
     addLog('💥 文明は崩壊し、世界は再び自然の時代へと戻ってしまった。', 'ev-bad');
     state.civCollapsed = true;
+    showEventFX({emoji:'💥', text:'文明崩壊が発生した!', tone:'bad', shake:true});
   } else {
     const floor = STAGES[state.stage].floor ?? 0;
     state.stage = Math.max(floor, state.stage-2);
+    showEventFX({emoji:'💀', text:'大量絶滅が発生した!', tone:'bad', shake:true});
   }
   state.stageProgress = 0;
   state.biodiversity = clamp(state.biodiversity-25,0,100);
@@ -576,25 +659,35 @@ function maybeEvent(state){
     if (state.stage<=2){
       state.water = clamp(state.water+9,0,100);
       addLog('☄️ 彗星が衝突し、大量の水がもたらされた。', 'ev-good');
+      showEventFX({emoji:'☄️', text:'彗星衝突: 水がもたらされた', tone:'good', meteor:true});
     } else {
-      if (Math.random()<0.35) triggerExtinction(state, '☄️ 巨大隕石が衝突し、生態系に大打撃を与えた!');
-      else addLog('☄️ 隕石が接近したが、大事には至らなかった。');
+      if (Math.random()<0.35){
+        showEventFX({emoji:'☄️', text:'巨大隕石が接近中...', tone:'bad', meteor:true});
+        triggerExtinction(state, '☄️ 巨大隕石が衝突し、生態系に大打撃を与えた!');
+      } else {
+        addLog('☄️ 隕石が接近したが、大事には至らなかった。');
+        showEventFX({emoji:'☄️', text:'隕石が接近(影響なし)', tone:'neutral', meteor:true});
+      }
     }
   } else if (r<0.10){
     state.volcanism = clamp(state.volcanism+16,0,100);
     state.co2 = clamp(state.co2+6,0,100);
     addLog('🌋 大規模な火山噴火が発生し、CO2濃度が上昇した。');
+    showEventFX({emoji:'🌋', text:'大規模噴火が発生!', tone:'neutral'});
   } else if (r<0.14 && state.stage>=4 && state.stage<12){
     state.stageProgress = clamp(state.stageProgress+18,0,100);
     addLog('✨ 爆発的な種の多様化が起こった!', 'ev-good');
+    showEventFX({emoji:'✨', text:'種の爆発的多様化!', tone:'good'});
   } else if (r<0.19){
     if (state.temp<45){
       state.temp = clamp(state.temp-9,0,100);
       addLog('🧊 寒冷化が進み、氷河期が到来した。');
+      showEventFX({emoji:'🧊', text:'氷河期が到来した', tone:'neutral'});
     }
   } else if (r<0.22 && state.industrial){
     state.co2 = clamp(state.co2+5,0,100);
     addLog('🏭 文明の活動により、CO2濃度がさらに上昇している。', 'ev-bad');
+    showEventFX({emoji:'🏭', text:'産業活動でCO2が上昇', tone:'bad'});
   }
 }
 
