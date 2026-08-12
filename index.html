@@ -47,11 +47,13 @@
   }
   h1{font-size:1.25rem;margin:0;font-weight:700;letter-spacing:.02em;}
   h1 span{color:var(--accent);}
-  .howto-btn, .tree-btn, .reset-btn{
+  .howto-btn, .tree-btn, .reset-btn, .admin-btn{
     background:var(--panel2);border:1px solid var(--border);color:var(--text);
     padding:6px 12px;border-radius:8px;font-size:.8rem;cursor:pointer;
   }
-  .howto-btn:hover,.tree-btn:hover,.reset-btn:hover{border-color:var(--accent);}
+  .howto-btn:hover,.tree-btn:hover,.reset-btn:hover,.admin-btn:hover{border-color:var(--accent);}
+  .admin-btn{background:#2a3358;color:#fff;border-color:#2a3358;}
+  .admin-btn:hover{opacity:.88;}
 
   .timebar{
     background:var(--panel);border:1px solid var(--border);border-radius:12px;
@@ -78,10 +80,31 @@
     background:var(--panel);border:1px solid var(--border);border-radius:14px;
     padding:20px;display:flex;flex-direction:column;align-items:center;gap:12px;
   }
-  .planetstage-frame{position:relative;width:220px;height:220px;}
+  .planetstage-frame{
+    position:relative;width:264px;height:264px;border-radius:24px;overflow:hidden;
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 45%, #10173a 0%, #060a22 65%, #03040f 100%);
+    box-shadow:inset 0 0 50px rgba(0,0,0,.6);
+  }
+  .planetstage-frame::before{
+    content:'';position:absolute;inset:0;
+    background-image:
+      radial-gradient(1.6px 1.6px at 15% 22%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 78% 15%, #fff, transparent),
+      radial-gradient(1.6px 1.6px at 60% 72%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 28% 82%, #fff, transparent),
+      radial-gradient(1.6px 1.6px at 90% 58%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 45% 40%, #fff, transparent),
+      radial-gradient(1.6px 1.6px at 8% 62%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 68% 90%, #fff, transparent),
+      radial-gradient(1.6px 1.6px at 92% 88%, #fff, transparent),
+      radial-gradient(1.2px 1.2px at 38% 12%, #fff, transparent);
+    opacity:.8;
+    pointer-events:none;
+  }
   #planet{
-    width:220px;height:220px;border-radius:50%;position:relative;overflow:hidden;
-    box-shadow:0 0 40px 4px rgba(90,209,255,.15), inset -18px -18px 40px rgba(0,0,0,.55);
+    width:220px;height:220px;border-radius:50%;position:relative;overflow:hidden;z-index:1;
+    box-shadow:0 0 40px 4px rgba(90,209,255,.25), inset -18px -18px 40px rgba(0,0,0,.55);
     transition:background 1s ease;
   }
   #clouds{
@@ -184,6 +207,22 @@
   .endcard h2{margin:0 0 6px;}
   .endcard p{color:var(--sub);font-size:.85rem;line-height:1.8;}
   .endcard button{margin-top:16px;padding:10px 22px;border-radius:9px;border:none;background:var(--accent);color:#05070f;font-weight:700;cursor:pointer;}
+
+  .adminnote{font-size:.68rem;color:#8a6d1f;background:#fff7e6;border:1px solid #ffe1a8;padding:8px 10px;border-radius:8px;margin-bottom:12px;line-height:1.6;}
+  .admintoprow{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;}
+  .admintoprow label{font-size:.78rem;color:var(--sub);}
+  .admintoprow input{width:90px;padding:6px 8px;border:1px solid var(--border);border-radius:7px;font-size:.8rem;}
+  .adminstage{border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:9px;}
+  .adminstage .astitle{font-size:.78rem;font-weight:700;margin-bottom:7px;}
+  .adminfields{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .adminfields label{font-size:.6rem;color:var(--sub);display:block;margin-bottom:2px;}
+  .adminfields input{width:100%;padding:5px 6px;border:1px solid var(--border);border-radius:6px;font-size:.74rem;background:#fff;color:var(--text);}
+  .adminbtnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;position:sticky;bottom:0;background:var(--panel);padding-top:10px;}
+  .adminbtnrow button, .adminbtnrow label.filebtn{
+    flex:1;min-width:110px;padding:9px;border-radius:8px;border:1px solid var(--border);
+    background:var(--panel2);color:var(--text);cursor:pointer;font-size:.76rem;text-align:center;
+  }
+  .adminbtnrow .primary{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:700;}
 </style>
 </head>
 <body>
@@ -195,13 +234,14 @@
     <div style="display:flex;gap:8px;">
       <button class="howto-btn" id="howtoBtn">遊び方</button>
       <button class="tree-btn" id="treeBtn">進化ツリー</button>
+      <button class="admin-btn" id="adminBtn">⚙ 管理者</button>
       <button class="reset-btn" id="resetBtn">最初から</button>
     </div>
   </header>
 
   <div class="timebar">
     <div class="elapsed">経過 <b id="elapsedTxt">0</b> 億年 / <span id="limitTxt">150</span>億年</div>
-    <div class="progressline"><div class="fill" id="timeFill" style="width:0%"></div><div class="marker" style="left:calc(46/150*100%)"></div></div>
+    <div class="progressline"><div class="fill" id="timeFill" style="width:0%"></div><div class="marker" id="timeMarker" style="left:calc(46/150*100%)"></div></div>
     <div class="speedctl">
       <button id="pauseBtn" class="active">⏸ 一時停止</button>
       <button data-speed="1" class="spd active">×1</button>
@@ -274,6 +314,30 @@
   </div>
 </div>
 
+<div class="modal-bg" id="adminModalBg">
+  <div class="modal" style="max-width:560px;">
+    <h3>⚙ 管理者設定 — 正解ルートの編集</h3>
+    <div class="adminnote">
+      各時代を「クリア」とみなす環境条件(気温・海洋割合・酸素濃度の範囲)や制限時間を、ここから直接調整できます。空欄はその項目に制限なしという意味です。設定はこのブラウザに保存され、次回アクセス時も維持されます。<br>
+      ※このパスワードは誤操作防止のための簡易的なものです。ページのソースを見れば誰でも中身を確認できるため、本格的なアクセス制限ではありません。
+    </div>
+    <div class="admintoprow">
+      <label>制限時間(億年)</label>
+      <input type="number" id="admin_timeLimit" min="10" max="999">
+    </div>
+    <div id="adminStageList"></div>
+    <div class="adminbtnrow">
+      <button class="primary" id="adminSaveBtn">保存して適用</button>
+      <button id="adminResetBtn">デフォルトに戻す</button>
+      <button id="adminExportBtn">エクスポート</button>
+      <label class="filebtn" for="adminImportFile">インポート
+        <input type="file" id="adminImportFile" accept="application/json" style="display:none;">
+      </label>
+    </div>
+    <button class="close" onclick="closeModal('adminModalBg')">閉じる</button>
+  </div>
+</div>
+
 <div class="endoverlay" id="endOverlay">
   <div class="endcard">
     <div id="endEmoji" style="font-size:2.2rem;">🚀</div>
@@ -288,42 +352,108 @@
 /* ---------- データ定義 ---------- */
 const STAGES = [
   {name:"誕生したばかりの惑星", desc:"灼熱のマグマオーシャンに覆われた原始の星。まずは冷えるのを待とう。",
-    cond:s=>s.temp<=72, condText:"必要条件: 気温72以下", floor:0},
+    rules:{tempMax:72}, floor:0},
   {name:"海の誕生", desc:"雨が降り注ぎ、原始の海がゆっくりと広がり始めている。",
-    cond:s=>s.water>=20 && s.temp<=68, condText:"必要条件: 海洋20%以上・気温68以下", floor:0},
+    rules:{waterMin:20, tempMax:68}, floor:0},
   {name:"有機物の誕生", desc:"海の中で複雑な有機分子が生まれ、生命の材料が揃いつつある。",
-    cond:s=>s.water>=30 && s.temp>=15 && s.temp<=62, condText:"必要条件: 海洋30%以上・気温15〜62", floor:0},
+    rules:{waterMin:30, tempMin:15, tempMax:62}, floor:0},
   {name:"原始生命の誕生", desc:"嫌気性の微生物が海の中でひっそりと誕生した。",
-    cond:s=>s.water>=30 && s.temp>=15 && s.temp<=62, condText:"必要条件: 海洋30%以上・気温15〜62を維持", floor:1},
+    rules:{waterMin:30, tempMin:15, tempMax:62}, floor:1},
   {name:"光合成生物の誕生", desc:"シアノバクテリアが酸素を生み出し始めた。大気の組成が変わっていく。",
-    cond:s=>s.o2>=15, condText:"必要条件: 酸素濃度15%以上(光合成促進が有効)", floor:1, onEnter:s=>{s.hasPhotosynthesis=true;}},
+    rules:{o2Min:15}, hint:"光合成促進が有効", floor:1, onEnter:s=>{s.hasPhotosynthesis=true;}},
   {name:"多細胞生物の爆発的増加", desc:"酸素濃度の上昇を追い風に、複雑な多細胞生物が爆発的に増えている(カンブリア紀)。",
-    cond:s=>s.o2>=20 && s.water>=35, condText:"必要条件: 酸素20%以上・海洋35%以上", floor:1},
+    rules:{o2Min:20, waterMin:35}, floor:1},
   {name:"海洋生物の繁栄", desc:"魚類をはじめ、多様な生物で海が満たされている。",
-    cond:s=>s.o2>=25 && s.water>=35, condText:"必要条件: 酸素25%以上・海洋35%以上", floor:1},
+    rules:{o2Min:25, waterMin:35}, floor:1},
   {name:"生物の上陸", desc:"両生類が陸地へと進出を始めた。",
-    cond:s=>s.o2>=28 && s.water<=85, condText:"必要条件: 酸素28%以上・海洋85%以下", floor:1},
+    rules:{o2Min:28, waterMax:85}, floor:1},
   {name:"爬虫類・恐竜の時代", desc:"温暖な気候の中、大型爬虫類が地上を支配している。",
-    cond:s=>s.temp>=40 && s.temp<=78, condText:"必要条件: 気温40〜78を維持", floor:1},
+    rules:{tempMin:40, tempMax:78}, floor:1},
   {name:"哺乳類の台頭", desc:"環境変動を生き延びた哺乳類が、静かに多様化を続けている。",
-    cond:s=>true, condText:"時間経過で自然に進行", floor:1},
+    rules:{}, floor:1},
   {name:"霊長類の出現", desc:"知能の高い霊長類が森の中で進化している。",
-    cond:s=>s.temp>=25 && s.temp<=65, condText:"必要条件: 気温25〜65を維持", floor:1},
+    rules:{tempMin:25, tempMax:65}, floor:1},
   {name:"人類の誕生", desc:"ついに知的生命体、人類が誕生した。",
-    cond:s=>true, condText:"時間経過で自然に進行", floor:1},
+    rules:{}, floor:1},
   {name:"文明の黎明(狩猟採集)", desc:"人類が道具と火を使いこなし始めた。",
-    cond:s=>true, condText:"時間経過で進行(文明支援が有効)", floor:1, civ:true, onEnter:s=>{s.hasCivilization=true;}},
+    rules:{}, hint:"文明支援が有効", floor:1, civ:true, onEnter:s=>{s.hasCivilization=true;}},
   {name:"農耕文明の発展", desc:"定住と農業により、人口がゆるやかに増加している。",
-    cond:s=>true, condText:"時間経過で進行(文明支援が有効)", floor:1, civ:true},
+    rules:{}, hint:"文明支援が有効", floor:1, civ:true},
   {name:"工業文明の到来", desc:"科学技術が急速に発展する一方、環境への負荷も増大している。",
-    cond:s=>true, condText:"時間経過で進行(文明支援・環境対策が有効)", floor:1, civ:true, onEnter:s=>{s.industrial=true;}},
+    rules:{}, hint:"文明支援・環境対策が有効", floor:1, civ:true, onEnter:s=>{s.industrial=true;}},
   {name:"情報文明への進化", desc:"高度な技術文明が、地球規模の課題の解決に挑んでいる。",
-    cond:s=>true, condText:"時間経過で進行(文明支援が有効)", floor:1, civ:true},
+    rules:{}, hint:"文明支援が有効", floor:1, civ:true},
   {name:"宇宙進出文明", desc:"ついに人類は地球を離れ、宇宙へと進出した。", ending:true, floor:1, civ:true},
 ];
 
-const TIME_LIMIT = 150; // 億年
+let TIME_LIMIT = 150; // 億年
 const REF_MARK = 46;
+
+/* ---------- 正解ルート判定・管理者設定 ---------- */
+function stageCondMet(st, s){
+  const r = st.rules;
+  if (!r) return true;
+  if (r.tempMin!=null && s.temp<r.tempMin) return false;
+  if (r.tempMax!=null && s.temp>r.tempMax) return false;
+  if (r.waterMin!=null && s.water<r.waterMin) return false;
+  if (r.waterMax!=null && s.water>r.waterMax) return false;
+  if (r.o2Min!=null && s.o2<r.o2Min) return false;
+  if (r.o2Max!=null && s.o2>r.o2Max) return false;
+  return true;
+}
+function describeRules(st){
+  const r = st.rules;
+  if (!r) return '';
+  const parts=[];
+  if (r.tempMin!=null && r.tempMax!=null) parts.push(`気温${r.tempMin}〜${r.tempMax}`);
+  else if (r.tempMin!=null) parts.push(`気温${r.tempMin}以上`);
+  else if (r.tempMax!=null) parts.push(`気温${r.tempMax}以下`);
+  if (r.waterMin!=null && r.waterMax!=null) parts.push(`海洋${r.waterMin}〜${r.waterMax}%`);
+  else if (r.waterMin!=null) parts.push(`海洋${r.waterMin}%以上`);
+  else if (r.waterMax!=null) parts.push(`海洋${r.waterMax}%以下`);
+  if (r.o2Min!=null && r.o2Max!=null) parts.push(`酸素${r.o2Min}〜${r.o2Max}%`);
+  else if (r.o2Min!=null) parts.push(`酸素${r.o2Min}%以上`);
+  else if (r.o2Max!=null) parts.push(`酸素${r.o2Max}%以下`);
+  let txt = parts.length ? '必要条件: '+parts.join('・') : '時間経過で自然に進行';
+  if (st.hint) txt += `(${st.hint})`;
+  return txt;
+}
+
+const ADMIN_PASSWORD = 'earth46';
+const ADMIN_STORAGE_KEY = 'progressOfEarth_adminConfig_v1';
+const DEFAULT_STAGE_RULES = STAGES.map(st=>st.rules ? {...st.rules} : null);
+const DEFAULT_TIME_LIMIT = TIME_LIMIT;
+
+function applyAdminConfig(cfg){
+  if (!cfg) return;
+  if (typeof cfg.timeLimit === 'number' && cfg.timeLimit>0) TIME_LIMIT = cfg.timeLimit;
+  if (Array.isArray(cfg.rules)){
+    cfg.rules.forEach((r,i)=>{
+      if (r && STAGES[i] && STAGES[i].rules){ STAGES[i].rules = {...r}; }
+    });
+  }
+}
+function loadAdminConfig(){
+  try{
+    const raw = localStorage.getItem(ADMIN_STORAGE_KEY);
+    if (raw) applyAdminConfig(JSON.parse(raw));
+  }catch(e){ /* 無視 */ }
+}
+function currentAdminConfig(){
+  return {
+    timeLimit: TIME_LIMIT,
+    rules: STAGES.map(st=>st.rules ? {...st.rules} : null),
+  };
+}
+function saveAdminConfig(){
+  localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(currentAdminConfig()));
+}
+function updateTimeMarker(){
+  const marker = document.getElementById('timeMarker');
+  if (marker) marker.style.left = clamp(REF_MARK/TIME_LIMIT*100,0,100)+'%';
+  const limitTxt = document.getElementById('limitTxt');
+  if (limitTxt) limitTxt.textContent = TIME_LIMIT;
+}
 
 /* 地上の映像(時代ごとの地表シーン) — STAGESと同じ並び */
 const GROUND_SCENES = [
@@ -381,7 +511,7 @@ const ACTIONS = [
     run:s=>{
       const st=STAGES[s.stage];
       if (st.ending){addLog('これ以上進化させる時代はない。');return;}
-      if (st.cond(s)){ s.stageProgress=clamp(s.stageProgress+26,0,100); addLog('進化を後押しした。'); }
+      if (stageCondMet(st,s)){ s.stageProgress=clamp(s.stageProgress+26,0,100); addLog('進化を後押しした。'); }
       else { addLog('環境条件が整っていないため、進化を後押しできなかった。'); }
     }},
   {id:'oxygen_push', label:'🫧 光合成を促進する', cost:2, minStage:4,
@@ -511,7 +641,7 @@ function tick(){
   // 時代進行
   const st = STAGES[s.stage];
   if (!st.ending){
-    if (st.cond(s)) s.stageProgress = clamp(s.stageProgress + 11 + Math.random()*6, 0, 100);
+    if (stageCondMet(st,s)) s.stageProgress = clamp(s.stageProgress + 11 + Math.random()*6, 0, 100);
     else s.stageProgress = clamp(s.stageProgress + 2, 0, 100);
 
     if (s.stageProgress>=100){
@@ -619,7 +749,7 @@ function render(){
   const st = STAGES[s.stage];
   document.getElementById('stageName').textContent = `${s.stage+1}. ${st.name}`;
   document.getElementById('stageDesc').textContent = st.desc;
-  document.getElementById('condText').textContent = st.ending ? '' : (st.condText || '');
+  document.getElementById('condText').textContent = st.ending ? '' : describeRules(st);
   document.getElementById('stageProgTxt').textContent = st.ending ? '—' : Math.round(s.stageProgress)+'%';
   document.getElementById('stageProgFill').style.width = st.ending ? '100%' : s.stageProgress+'%';
 
@@ -630,7 +760,7 @@ function render(){
   } else if (s.extremeCounter>=1){
     statusEl.className = 'statusline danger';
     statusEl.textContent = `🔴 危険: 環境が極端です。あと${Math.max(0,3-s.extremeCounter)}ターンで大量絶滅の恐れ`;
-  } else if (st.cond(s)){
+  } else if (stageCondMet(st,s)){
     statusEl.className = 'statusline good';
     statusEl.textContent = '🟢 順調: 条件を満たしています。このまま進化が進みます';
   } else {
@@ -723,6 +853,90 @@ document.getElementById('howtoBtn').addEventListener('click', ()=>{
 });
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
+/* ---------- 管理者パネル ---------- */
+const FIELD_DEFS = [
+  {key:'tempMin', label:'気温 最小'}, {key:'tempMax', label:'気温 最大'},
+  {key:'waterMin', label:'海洋% 最小'}, {key:'waterMax', label:'海洋% 最大'},
+  {key:'o2Min', label:'酸素% 最小'}, {key:'o2Max', label:'酸素% 最大'},
+];
+function renderAdminPanel(){
+  document.getElementById('admin_timeLimit').value = TIME_LIMIT;
+  const list = document.getElementById('adminStageList');
+  list.innerHTML = STAGES.map((st,i)=>{
+    if (st.ending){
+      return `<div class="adminstage"><div class="astitle">${i+1}. ${st.name}(ゴール — 編集不要)</div></div>`;
+    }
+    const r = st.rules || {};
+    const fields = FIELD_DEFS.map(f=>`
+      <div><label>${f.label}</label><input type="number" data-stage="${i}" data-field="${f.key}" value="${r[f.key]!=null?r[f.key]:''}" placeholder="制限なし"></div>
+    `).join('');
+    return `<div class="adminstage">
+      <div class="astitle">${i+1}. ${st.name}</div>
+      <div class="adminfields">${fields}</div>
+    </div>`;
+  }).join('');
+}
+function readAdminForm(){
+  const timeLimit = Number(document.getElementById('admin_timeLimit').value) || DEFAULT_TIME_LIMIT;
+  const rules = STAGES.map(st=>st.rules ? {} : null);
+  document.querySelectorAll('#adminStageList input[data-stage]').forEach(inp=>{
+    const i = Number(inp.dataset.stage), key = inp.dataset.field;
+    const v = inp.value.trim();
+    if (rules[i]) rules[i][key] = v==='' ? null : Number(v);
+  });
+  return {timeLimit, rules};
+}
+document.getElementById('adminBtn').addEventListener('click', ()=>{
+  const pw = prompt('管理者パスワードを入力してください');
+  if (pw===null) return;
+  if (pw !== ADMIN_PASSWORD){ alert('パスワードが違います。'); return; }
+  renderAdminPanel();
+  document.getElementById('adminModalBg').classList.add('show');
+});
+document.getElementById('adminSaveBtn').addEventListener('click', ()=>{
+  const cfg = readAdminForm();
+  applyAdminConfig(cfg);
+  saveAdminConfig();
+  updateTimeMarker();
+  render();
+  alert('保存し、ゲームに反映しました。');
+});
+document.getElementById('adminResetBtn').addEventListener('click', ()=>{
+  if (!confirm('デフォルトの正解ルートに戻しますか?')) return;
+  TIME_LIMIT = DEFAULT_TIME_LIMIT;
+  STAGES.forEach((st,i)=>{ if (st.rules) st.rules = {...DEFAULT_STAGE_RULES[i]}; });
+  localStorage.removeItem(ADMIN_STORAGE_KEY);
+  renderAdminPanel();
+  updateTimeMarker();
+  render();
+});
+document.getElementById('adminExportBtn').addEventListener('click', ()=>{
+  const blob = new Blob([JSON.stringify(currentAdminConfig(), null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'progress-of-the-earth-rules.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+document.getElementById('adminImportFile').addEventListener('change', (e)=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const cfg = JSON.parse(reader.result);
+      applyAdminConfig(cfg);
+      saveAdminConfig();
+      renderAdminPanel();
+      updateTimeMarker();
+      render();
+      alert('インポートして適用しました。');
+    }catch(err){ alert('ファイルの読み込みに失敗しました。JSON形式を確認してください。'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
 /* ---------- 時間コントロール ---------- */
 function startTimer(){
   clearInterval(timer);
@@ -749,6 +963,8 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
 });
 
 /* ---------- 初期描画 ---------- */
+loadAdminConfig();
+updateTimeMarker();
 render();
 </script>
 </body>
