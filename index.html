@@ -97,13 +97,13 @@
   .planetstage-frame.fx-flash-good::after,
   .planetstage-frame.fx-flash-neutral::after{
     content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
-    animation:flashPulse .8s ease;
+    animation:flashPulse 1.5s ease;
   }
   .planetstage-frame.fx-flash-bad::after{background:radial-gradient(circle, rgba(255,70,70,.6), transparent 70%);}
   .planetstage-frame.fx-flash-good::after{background:radial-gradient(circle, rgba(90,255,170,.5), transparent 70%);}
   .planetstage-frame.fx-flash-neutral::after{background:radial-gradient(circle, rgba(255,200,90,.5), transparent 70%);}
-  @keyframes flashPulse{0%{opacity:0;}30%{opacity:1;}100%{opacity:0;}}
-  .planetstage-frame.fx-shake{animation:shakeFrame .5s;}
+  @keyframes flashPulse{0%{opacity:0;}20%{opacity:1;}80%{opacity:1;}100%{opacity:0;}}
+  .planetstage-frame.fx-shake{animation:shakeFrame .8s;}
   @keyframes shakeFrame{
     0%,100%{transform:translate(0,0);}
     20%{transform:translate(-6px,3px);}
@@ -113,7 +113,7 @@
   }
   .fxmeteor{
     position:absolute;z-index:4;font-size:1rem;top:-8%;right:-8%;
-    animation:meteorFly .7s ease-in forwards;
+    animation:meteorFly 1.4s ease-in forwards;
     filter:drop-shadow(0 0 4px rgba(255,150,60,.9));
   }
   @keyframes meteorFly{
@@ -130,7 +130,7 @@
     background:rgba(20,26,50,.94);color:#fff;padding:7px 14px;border-radius:20px;
     font-size:.74rem;font-weight:700;display:flex;align-items:center;gap:7px;
     box-shadow:0 4px 14px rgba(0,0,0,.3);white-space:nowrap;
-    animation:toastIn .35s ease, toastOut .4s ease 1.9s forwards;
+    animation:toastIn .5s ease, toastOut .6s ease 3.6s forwards;
   }
   .fxtoast .emoji{font-size:1.15rem;}
   .fxtoast.bad{background:rgba(160,32,44,.95);}
@@ -529,6 +529,31 @@ function describeRules(st){
   return txt;
 }
 
+/* プレイヤー向けの抽象的な目安表現(管理者パネルは上のdescribeRulesで正確な数値を扱う) */
+const TEMP_BAND_ABS = v => v<15?'極寒':v<30?'寒い':v<50?'涼しい':v<65?'温暖':v<80?'暑い':'灼熱';
+const WATER_BAND_ABS = v => v<15?'ほぼ陸地':v<35?'わずかな海':v<60?'適度な海':v<85?'豊かな海':'海洋惑星';
+const O2_BAND_ABS = v => v<10?'ほぼ無酸素':v<20?'薄い酸素':v<30?'十分な酸素':'濃い酸素';
+function bandRange(min, max, bandFn){
+  if (min!=null && max!=null) return `${bandFn(min)}〜${bandFn(max)}`;
+  if (min!=null) return `${bandFn(min)}以上`;
+  if (max!=null) return `${bandFn(max)}以下`;
+  return null;
+}
+function describeRulesAbstract(st){
+  const r = st.rules;
+  if (!r) return '';
+  const parts = [];
+  const t = bandRange(r.tempMin, r.tempMax, TEMP_BAND_ABS);
+  if (t) parts.push(`🌡️気温: ${t}`);
+  const w = bandRange(r.waterMin, r.waterMax, WATER_BAND_ABS);
+  if (w) parts.push(`💧海: ${w}`);
+  const o = bandRange(r.o2Min, r.o2Max, O2_BAND_ABS);
+  if (o) parts.push(`🫧大気: ${o}`);
+  let txt = parts.length ? '目安: '+parts.join('・') : '時間の経過とともに自然に進む';
+  if (st.hint) txt += `(${st.hint})`;
+  return txt;
+}
+
 const ADMIN_PASSWORD = 'earth46';
 const ADMIN_STORAGE_KEY = 'progressOfEarth_adminConfig_v1';
 const DEFAULT_STAGE_RULES = STAGES.map(st=>st.rules ? {...st.rules} : null);
@@ -726,7 +751,7 @@ function showEventFX({emoji, text, tone='neutral', shake=false, meteor=false}){
     toast.className = 'fxtoast ' + (tone==='bad'?'bad':tone==='good'?'good':'');
     toast.innerHTML = `<span class="emoji">${emoji}</span><span>${text}</span>`;
     wrap.appendChild(toast);
-    setTimeout(()=>{ toast.remove(); }, 2300);
+    setTimeout(()=>{ toast.remove(); }, 4200);
   }
   const frame = document.getElementById('planetFrame');
   if (frame){
@@ -734,20 +759,20 @@ function showEventFX({emoji, text, tone='neutral', shake=false, meteor=false}){
     frame.classList.remove('fx-flash-bad','fx-flash-good','fx-flash-neutral');
     void frame.offsetWidth; // reflow so the animation restarts even if re-triggered quickly
     frame.classList.add(flashClass);
-    setTimeout(()=>frame.classList.remove(flashClass), 850);
+    setTimeout(()=>frame.classList.remove(flashClass), 1500);
 
     if (shake){
       frame.classList.remove('fx-shake');
       void frame.offsetWidth;
       frame.classList.add('fx-shake');
-      setTimeout(()=>frame.classList.remove('fx-shake'), 550);
+      setTimeout(()=>frame.classList.remove('fx-shake'), 800);
     }
     if (meteor){
       const m = document.createElement('div');
       m.className = 'fxmeteor';
       m.textContent = '☄️';
       frame.appendChild(m);
-      setTimeout(()=>m.remove(), 750);
+      setTimeout(()=>m.remove(), 1400);
     }
   }
 }
@@ -977,7 +1002,7 @@ function render(){
   const st = STAGES[s.stage];
   document.getElementById('stageName').textContent = `${s.stage+1}. ${st.name}`;
   document.getElementById('stageDesc').textContent = st.desc;
-  document.getElementById('condText').textContent = st.ending ? '' : describeRules(st);
+  document.getElementById('condText').textContent = st.ending ? '' : describeRulesAbstract(st);
   document.getElementById('stageProgTxt').textContent = st.ending ? '—' : Math.round(s.stageProgress)+'%';
   document.getElementById('stageProgFill').style.width = st.ending ? '100%' : s.stageProgress+'%';
 
@@ -1214,7 +1239,7 @@ document.getElementById('adminImportFile').addEventListener('change', (e)=>{
 /* ---------- 時間コントロール ---------- */
 function startTimer(){
   clearInterval(timer);
-  const base = 1800;
+  const base = 3000;
   timer = setInterval(tick, base/speed);
 }
 document.getElementById('pauseBtn').addEventListener('click', function(){
